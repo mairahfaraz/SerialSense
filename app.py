@@ -10,6 +10,7 @@ load_dotenv()
 client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 current_file_path = None
+session_context = ""
 latest_analysis = ""
 observer = None
 
@@ -46,6 +47,8 @@ def get_analysis():
     return latest_analysis
 
 def start_session(robot_type, arduino_type, goal):
+    global session_context
+    session_context = f"Robot type: {robot_type}, Arduino: {arduino_type}, Goal: {goal}"
     prompt = f"""You are SerialSense, an AI assistant helping a student build an Arduino based robot.
 Here is what they told you about their project:
 - Robot type: {robot_type}
@@ -84,7 +87,9 @@ def analyze_and_chat(history):
     with open(current_file_path, 'r') as f:
         code = f.read()
     prompt = f"""You are SerialSense analyzing Arduino code.
-Give short specific feedback — bugs, improvements, upload readiness.
+The user's project context: {session_context}
+Give specific feedback relevant to their exact robot type and goal.
+Point out bugs, improvements, and upload readiness.
 Under 150 words. Code: {code}"""
     response = client.models.generate_content(
         model="gemini-2.5-flash-lite", contents=prompt)
