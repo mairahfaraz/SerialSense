@@ -2,10 +2,13 @@ import gradio as gr
 from google import genai
 from dotenv import load_dotenv
 import os
+os.environ["OPENCV_AVFOUNDATION_SKIP_AUTH"] = "1"
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 import time
 from templates import get_template
+from camera import run_camera_session
+import cv2 
 
 load_dotenv()
 client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
@@ -26,7 +29,7 @@ class ArduinoFileHandler(FileSystemEventHandler):
 Give short specific feedback — bugs, improvements, upload readiness.
 Under 100 words. Code: {code}"""
             response = client.models.generate_content(
-                model="gemini-2.5-flash-lite", contents=prompt)
+                model="gemini-2.0-flash-lite", contents=prompt)
             latest_analysis = response.text
 
 def start_watching(file):
@@ -60,7 +63,7 @@ Here is what they told you about their project:
 Greet them, confirm you understand their project.
 Keep it friendly, specific, and under 100 words."""
     response = client.models.generate_content(
-        model="gemini-2.5-flash-lite", contents=prompt)
+        model="gemini-2.0-flash-lite", contents=prompt)
     greeting = response.text
     return [{"role": "assistant", "content": greeting}]
 
@@ -77,7 +80,7 @@ Conversation so far:
 {messages}
 User: {user_message}"""
     response = client.models.generate_content(
-        model="gemini-2.5-flash-lite", contents=prompt)
+        model="gemini-2.0-flash-lite", contents=prompt)
     reply = response.text
     history.append({"role": "user", "content": user_message})
     history.append({"role": "assistant", "content": reply})
@@ -95,9 +98,53 @@ Give specific feedback relevant to their exact robot type and goal.
 Point out bugs, improvements, and upload readiness.
 Under 150 words. Code: {code}"""
     response = client.models.generate_content(
-        model="gemini-2.5-flash-lite", contents=prompt)
+        model="gemini-2.0-flash-lite", contents=prompt)
     history.append({"role": "assistant", "content": response.text})
     return history
+
+def start_analysis(duration, history):
+    global camera_stop_flag
+    camera_stop_flag = False
+    summary, snapshot = run_camera_session(duration, lambda: camera_stop_flag)
+    
+    from google.genai import types
+    
+    if snapshot is not None:
+        _, buffer = cv2.imencode('.jpg', snapshot)
+        image_bytes = buffer.tobytes()
+        response = client.models.generate_content(
+            model="gemini-2.0-flash-lite",
+            contents=[
+                types.Part.from_bytes(data=image_bytes, mime_type="image/jpeg"),
+                f"""You are SerialSense analyzing a robot's physical behavior.
+Project context: {session_context}
+Motion summary: {summary}
+Look at this image carefully. If this is not a robot, say so and ask the user to point the camera at their bot.
+If it is a robot, analyze its position, the track if visible, and cross reference with the motion summary and code context.
+Give specific diagnosis and fixes. Under 150 words."""
+            ]
+        )
+    else:
+        response = client.models.generate_content(
+            model="gemini-2.0-flash-lite",
+            contents=f"Motion summary: {summary}\nContext: {session_context}"
+        )
+    
+    if history is None:
+        history = []
+    history.append({"role": "assistant", "content": response.text})
+    return history
+
+camera_stop_flag = False
+
+def stop_analysis(history):
+    global camera_stop_flag
+    camera_stop_flag = True
+    if history is None: 
+        history = []
+    history.append({"role": "assistant", "content": "Camera analysis stopped."})
+    return history
+
 
 with gr.Blocks(title="SerialSense") as app:
     gr.Markdown("# SerialSense")
@@ -135,7 +182,29 @@ with gr.Blocks(title="SerialSense") as app:
     file_input = gr.File(label="Select your .ino file", file_types=[".ino"])
     watch_status = gr.Textbox(label="Status", interactive=False)
     analyze_btn = gr.Button("Analyze Now", variant="secondary")
+    
+    gr.Markdown("---")
+    gr.Markdown("### 📷 Camera Analysis")
+    gr.Markdown("Point camera at your bot, set duration and click Analyze.")
+    with gr.Row():
+        duration = gr.Slider(minimum=5, maximum=30, value=10,
+                         step=5, label="Recording duration (seconds)")
+        camera_feed = gr.Image(sources=["webcam"],
+                       streaming=True, label="Camera Feed")
+        with gr.Row():
+            camera_btn = gr.Button("Start Camera Analysis", variant="primary")
+            stop_camera_btn = gr.Button("Stop Camera Analysis", variant="stop")
+            
+            camera_running = gr.State(False)
+            
+            camera_btn.click(start_analysis,
+                 inputs=[duration, chatbot],
+                 outputs=[chatbot])
+            stop_camera_btn.click(stop_analysis,
+                      inputs=[chatbot],
+                      outputs=[chatbot])
 
+    
     submit.click(start_session,
                  inputs=[robot_type, arduino_type, motor_driver, goal],
                  outputs=[chatbot])
