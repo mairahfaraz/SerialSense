@@ -5,6 +5,7 @@ import os
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 import time
+from templates import get_template
 
 load_dotenv()
 client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
@@ -46,13 +47,15 @@ def start_watching(file):
 def get_analysis():
     return latest_analysis
 
-def start_session(robot_type, arduino_type, goal):
+def start_session(robot_type, arduino_type, motor_driver, goal):
     global session_context
-    session_context = f"Robot type: {robot_type}, Arduino: {arduino_type}, Goal: {goal}"
+    templaye = get_template(robot_type, motor_driver)
+    session_context = f"Robot type: {robot_type}, Arduino: {arduino_type}, Motor Driver: {motor_driver}, Goal: {goal}"
     prompt = f"""You are SerialSense, an AI assistant helping a student build an Arduino based robot.
 Here is what they told you about their project:
 - Robot type: {robot_type}
 - Arduino type: {arduino_type}
+- Motor driver: {motor_driver}
 - Goal: {goal}
 Greet them, confirm you understand their project.
 Keep it friendly, specific, and under 100 words."""
@@ -96,7 +99,7 @@ Under 150 words. Code: {code}"""
     history.append({"role": "assistant", "content": response.text})
     return history
 
-with gr.Blocks(title="SerialSense", theme=gr.themes.Ocean()) as app:
+with gr.Blocks(title="SerialSense") as app:
     gr.Markdown("# SerialSense")
     gr.Markdown("Tell us about your robot before we begin.")
 
@@ -111,7 +114,11 @@ with gr.Blocks(title="SerialSense", theme=gr.themes.Ocean()) as app:
             choices=["Arduino Uno", "Arduino Nano", "Arduino Mega",
                      "Arduino Leonardo", "Arduino Pro Mini"],
             value="Arduino Uno")
-
+        motor_driver = gr.Dropdown(
+            label="What Motor Driver are you using?",
+            choices=["L298N", "L293D", "TB6612FNG", "L9110S", "DRV8833"],
+            value="L298N")
+        
     goal = gr.Textbox(label="What do you want your robot to do?",
                       placeholder="Describe in detail")
     submit = gr.Button("Start Session", variant="primary")
@@ -130,11 +137,11 @@ with gr.Blocks(title="SerialSense", theme=gr.themes.Ocean()) as app:
     analyze_btn = gr.Button("Analyze Now", variant="secondary")
 
     submit.click(start_session,
-                 inputs=[robot_type, arduino_type, goal],
+                 inputs=[robot_type, arduino_type, motor_driver, goal],
                  outputs=[chatbot])
     send.click(chat, inputs=[user_input, chatbot], outputs=[user_input, chatbot])
     user_input.submit(chat, inputs=[user_input, chatbot], outputs=[user_input, chatbot])
     file_input.change(start_watching, inputs=[file_input], outputs=[watch_status])
     analyze_btn.click(analyze_and_chat, inputs = [chatbot], outputs=[chatbot])
 
-app.launch()
+app.launch(theme=gr.themes.Ocean())
