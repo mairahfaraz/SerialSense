@@ -68,5 +68,6 @@ def run_camera_session(duration, stop_flag_func):
             ret, snapshot = cap.read()
     
     cap.release()
+    cv2.destroyAllWindows()
     summary = analyze_motion(motion_values)
     return summary, snapshot

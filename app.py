@@ -26,10 +26,10 @@ class ArduinoFileHandler(FileSystemEventHandler):
             with open(current_file_path, 'r') as f:
                 code = f.read()
             prompt = f"""You are SerialSense analyzing Arduino code in real time.
-Give short specific feedback — bugs, improvements, upload readiness.
+Give short specific feedback about bugs, improvements, upload readiness.
 Under 100 words. Code: {code}"""
             response = client.models.generate_content(
-                model="gemini-2.0-flash-lite", contents=prompt)
+                model="gemini-2.5-flash", contents=prompt)
             latest_analysis = response.text
 
 def start_watching(file):
@@ -63,7 +63,7 @@ Here is what they told you about their project:
 Greet them, confirm you understand their project.
 Keep it friendly, specific, and under 100 words."""
     response = client.models.generate_content(
-        model="gemini-2.0-flash-lite", contents=prompt)
+        model="gemini-2.5-flash", contents=prompt)
     greeting = response.text
     return [{"role": "assistant", "content": greeting}]
 
@@ -80,7 +80,7 @@ Conversation so far:
 {messages}
 User: {user_message}"""
     response = client.models.generate_content(
-        model="gemini-2.0-flash-lite", contents=prompt)
+        model="gemini-2.5-flash", contents=prompt)
     reply = response.text
     history.append({"role": "user", "content": user_message})
     history.append({"role": "assistant", "content": reply})
@@ -98,7 +98,7 @@ Give specific feedback relevant to their exact robot type and goal.
 Point out bugs, improvements, and upload readiness.
 Under 150 words. Code: {code}"""
     response = client.models.generate_content(
-        model="gemini-2.0-flash-lite", contents=prompt)
+        model="gemini-2.5-flash", contents=prompt)
     history.append({"role": "assistant", "content": response.text})
     return history
 
@@ -113,7 +113,7 @@ def start_analysis(duration, history):
         _, buffer = cv2.imencode('.jpg', snapshot)
         image_bytes = buffer.tobytes()
         response = client.models.generate_content(
-            model="gemini-2.0-flash-lite",
+            model="gemini-2.5-flash",
             contents=[
                 types.Part.from_bytes(data=image_bytes, mime_type="image/jpeg"),
                 f"""You are SerialSense analyzing a robot's physical behavior.
@@ -126,7 +126,7 @@ Give specific diagnosis and fixes. Under 150 words."""
         )
     else:
         response = client.models.generate_content(
-            model="gemini-2.0-flash-lite",
+            model="gemini-2.5-flash",
             contents=f"Motion summary: {summary}\nContext: {session_context}"
         )
     
@@ -171,20 +171,20 @@ with gr.Blocks(title="SerialSense") as app:
     submit = gr.Button("Start Session", variant="primary")
 
     gr.Markdown("---")
-    gr.Markdown("### 💬 Chat with SerialSense")
+    gr.Markdown("### Chat with SerialSense")
     chatbot = gr.Chatbot(height=400)
     user_input = gr.Textbox(placeholder="Ask anything about your project...",
                              show_label=False)
     send = gr.Button("Send", variant="primary")
 
     gr.Markdown("---")
-    gr.Markdown("### 📂 Live code analysis")
+    gr.Markdown("### Live code analysis")
     file_input = gr.File(label="Select your .ino file", file_types=[".ino"])
     watch_status = gr.Textbox(label="Status", interactive=False)
     analyze_btn = gr.Button("Analyze Now", variant="secondary")
     
     gr.Markdown("---")
-    gr.Markdown("### 📷 Camera Analysis")
+    gr.Markdown("### Camera Analysis")
     gr.Markdown("Point camera at your bot, set duration and click Analyze.")
     with gr.Row():
         duration = gr.Slider(minimum=5, maximum=30, value=10,
