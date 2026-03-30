@@ -7,7 +7,7 @@ from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 import time
 from templates import get_template
-from camera import run_camera_session
+from camera import run_camera_session, analyze_video
 import cv2 
 
 load_dotenv()
@@ -145,6 +145,43 @@ def stop_analysis(history):
     history.append({"role": "assistant", "content": "Camera analysis stopped."})
     return history
 
+def analyze_video_chat(video_input, history):
+    if history is None:
+        history = []
+    
+    if video_input is None:
+        history.append({"role": "assistant", "content": "No video uploaded. Please upload a video first."})
+        return history
+    
+    video_path = video_input.name
+    summary, snapshot = analyze_video(video_path)
+    
+    from google.genai import types
+    
+    if snapshot is not None:
+        _, buffer = cv2.imencode('.jpg', snapshot)
+        image_bytes = buffer.tobytes()
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=[
+                types.Part.from_bytes(data=image_bytes, mime_type="image/jpeg"),
+                f"""You are SerialSense analyzing a robot's physical behavior through a video file.
+Project context: {session_context}
+Motion summary: {summary}
+Look at this image carefully. If this is not a robot, say so and ask the user to insert a video of their bot.
+If it is a robot, analyze its position, the track if visible, and cross reference with the motion summary and code context.
+Give specific diagnosis and fixes. Under 150 words."""
+            ]
+        )
+    else:
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=f"Motion summary: {summary}\nContext: {session_context}"
+        )
+    
+    history.append({"role": "assistant", "content": response.text})
+    return history
+
 
 with gr.Blocks(title="SerialSense") as app:
     gr.Markdown("# SerialSense")
@@ -185,7 +222,7 @@ with gr.Blocks(title="SerialSense") as app:
     
     gr.Markdown("---")
     gr.Markdown("### Camera Analysis")
-    gr.Markdown("Point camera at your bot, set duration and click Analyze.")
+    gr.Markdown("Point camera at your bot, set duration and click Analyze. OR upload a video of your robot")
     with gr.Row():
         duration = gr.Slider(minimum=5, maximum=30, value=10,
                          step=5, label="Recording duration (seconds)")
@@ -195,6 +232,8 @@ with gr.Blocks(title="SerialSense") as app:
             camera_btn = gr.Button("Start Camera Analysis", variant="primary")
             stop_camera_btn = gr.Button("Stop Camera Analysis", variant="stop")
             
+            video_input = gr.File(label= "Upload robot video", file_types = [".mp4", ".mov", ".avi"])
+            analyze_video_btn = gr.Button("Analyze Video", variant = "primary")
             camera_running = gr.State(False)
             
             camera_btn.click(start_analysis,
@@ -203,6 +242,9 @@ with gr.Blocks(title="SerialSense") as app:
             stop_camera_btn.click(stop_analysis,
                       inputs=[chatbot],
                       outputs=[chatbot])
+            analyze_video_btn.click(analyze_video_chat,
+                        inputs=[video_input, chatbot],
+                        outputs=[chatbot])
 
     
     submit.click(start_session,

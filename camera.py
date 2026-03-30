@@ -71,3 +71,36 @@ def run_camera_session(duration, stop_flag_func):
     cv2.destroyAllWindows()
     summary = analyze_motion(motion_values)
     return summary, snapshot
+
+def analyze_video(video_path):
+    cap = cv2.VideoCapture(video_path)
+    if not cap.isOpened():
+        return "Error: Could not open video file.", None
+    
+    motion_values = []
+    snapshot = None
+    frame_count = 0
+    
+    ret, frame1 = cap.read()
+    while ret:
+        ret, frame2 = cap.read()
+        if not ret:
+            break
+        
+        frame_count += 1
+        if frame_count % 10 == 0:
+            diff = cv2.absdiff(frame1, frame2)
+            gray = cv2.cvtColor(diff, cv2.COLOR_BGR2GRAY)
+            blur = cv2.GaussianBlur(gray, (5, 5), 0)
+            _, thresh = cv2.threshold(blur, 20, 255, cv2.THRESH_BINARY)
+            motion = cv2.countNonZero(thresh)
+            motion_values.append(motion)
+            
+            if snapshot is None:
+                snapshot = frame2
+        
+        frame1 = frame2
+    
+    cap.release()
+    summary = analyze_motion(motion_values)
+    return summary, snapshot
