@@ -22,12 +22,14 @@ Most Arduino debugging means uploading broken code to hardware, watching it fail
 
 ### Onboarding + live bug detection alongside Arduino IDE
 ![SerialSense in action]
-<img width="1413" height="702" alt="image" src="https://github.com/user-attachments/assets/231c4aa4-c3cc-46bd-b442-44e49c6662d8" />
+<img width="934" height="434" alt="image" src="https://github.com/user-attachments/assets/01323ffc-65d6-462d-83b9-b4d4ac24e7d3" />
+
 
 
 ### Context-aware analysis in the chat
 ![SerialSense chat]
-<img width="1426" height="691" alt="image" src="https://github.com/user-attachments/assets/07125126-ebf1-4717-92f2-f313c4ccda6c" />
+<img width="959" height="434" alt="image" src="https://github.com/user-attachments/assets/6685c3c1-7859-4e79-ae37-0aac68ae20a4" />
+
 
 
 ---
@@ -45,12 +47,12 @@ Most Arduino debugging means uploading broken code to hardware, watching it fail
 
 ## Tech stack
 
-- Python 3.12
-- Gradio — web UI
+- Python 3.14
+- React — front-end
 - Google Gemini API — AI analysis
 - Watchdog — file system monitoring
 - python-dotenv — environment variable management
-
+- Flask - backend
 ---
 
 ## Installation
