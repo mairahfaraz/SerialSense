@@ -1,0 +1,33 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-image: url('./bg.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  font-family: 'Orbitron', sans-serif;
+  color: #fff;
+  min-height: 100vh;
+}
+
+.feature-card {
+  background-color: rgba(0, 200, 150, 0.82);
+  border-radius: 16px;
+  padding: 36px 28px;
+  max-width: 280px;
+  text-align: center;
+  box-shadow: 0 8px 32px rgba(0, 200, 150, 0.15);
+  backdrop-filter: blur(4px);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: default;
+}
+
+.feature-card:hover {
+  transform: translateY(-12px);
+  box-shadow: 0 20px 40px rgba(0, 200, 150, 0.35);
+}

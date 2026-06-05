@@ -95,7 +95,7 @@ def analyze_and_chat(history):
     prompt = f"""You are SerialSense analyzing Arduino code.
 The user's project context: {session_context}
 Give specific feedback relevant to their exact robot type and goal.
-Point out bugs, improvements, and upload readiness.
+Point out bugs, improvements, and upload readiness. But if the code is workable, encourage them to upload and test it on their robot to get real-world feedback.
 Under 150 words. Code: {code}"""
     response = client.models.generate_content(
         model="gemini-2.5-flash", contents=prompt)
@@ -155,6 +155,7 @@ def analyze_video_chat(video_input, history):
     
     video_path = video_input.name
     summary, snapshot = analyze_video(video_path)
+    print("DEBUG SUMMARY:", summary)
     
     from google.genai import types
     
@@ -167,11 +168,23 @@ def analyze_video_chat(video_input, history):
                 types.Part.from_bytes(data=image_bytes, mime_type="image/jpeg"),
                 f"""You are SerialSense analyzing a robot's physical behavior through a video file.
 Project context: {session_context}
-Motion summary: {summary}
-Look at this image carefully. If this is not a robot, say so and ask the user to insert a video of their bot.
-If it is a robot, analyze its position, the track if visible, and cross reference with the motion summary and code context.
-Give specific diagnosis and fixes. Under 150 words."""
-            ]
+
+If the video is not showing a robot, say so and ask the user to upload a clear video of their bot.
+
+IMPORTANT - Frame by frame ML classification results from the video:
+{summary}
+
+These classifications were made by a trained MobileNetV2 model on every frame of the video.
+Trust these results as the primary source of diagnosis — they reflect actual movement patterns throughout the entire video, not just this snapshot.
+
+
+Based on the classification percentages:
+- If 'spin' is detected, flag it as a fault unless the user mentioned spinning as a requirement
+- If 'left' or 'right' is high, the robot is detracking
+- If 'stopped' is high, the robot is stalling unless it is stopping at the end of a run.
+- If 'on_line' is dominant, the robot is performing correctly
+
+Give a specific diagnosis and actionable fixes based on the classification data. Under 150 words."""]
         )
     else:
         response = client.models.generate_content(

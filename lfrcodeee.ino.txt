@@ -1,0 +1,63 @@
+// Line Following Robot - Faulty Code
+// Multiple bugs present
+
+#define ENA 5
+#define IN1 6
+#define IN2 7
+#define ENB 10
+#define IN3 8
+#define IN4 9
+
+#define LEFT_SENSOR 2
+#define CENTER_SENSOR 3
+#define RIGHT_SENSOR 4
+
+// Bug 1: baseSpeed too high, will cause motor burnout
+int baseSpeed = 255;
+
+void setup() {
+  // Bug 2: ENA and ENB not set as OUTPUT
+  pinMode(IN1, OUTPUT);
+  pinMode(IN2, OUTPUT);
+  pinMode(IN3, OUTPUT);
+  pinMode(IN4, OUTPUT);
+  // Bug 3: Sensors not set as INPUT at all
+}
+
+void moveForward() {
+  digitalWrite(IN1, HIGH);
+  digitalWrite(IN2, LOW);
+  // Bug 4: analogWrite missing for ENA — motor won't move
+  digitalWrite(IN3, HIGH);
+  digitalWrite(IN4, LOW);
+  // Bug 5: analogWrite missing for ENB
+}
+
+void loop() {
+  int left = digitalRead(LEFT_SENSOR);
+  int center = digitalRead(CENTER_SENSOR);
+  int right = digitalRead(RIGHT_SENSOR);
+
+  // Bug 6: Logic is inverted — turns wrong way
+  if (center == LOW) {
+    moveForward();
+  } else if (left == LOW) {
+    // Bug 7: Turning right when should turn left
+    digitalWrite(IN1, HIGH);
+    digitalWrite(IN2, LOW);
+    analogWrite(ENA, 200);
+    digitalWrite(IN3, HIGH);
+    digitalWrite(IN4, LOW);
+    analogWrite(ENB, 200);
+  } else if (right == LOW) {
+    // Bug 8: Both motors going same direction instead of turning
+    digitalWrite(IN1, LOW);
+    digitalWrite(IN2, HIGH);
+    analogWrite(ENA, 200);
+    digitalWrite(IN3, LOW);
+    digitalWrite(IN4, HIGH);
+    analogWrite(ENB, 200);
+  }
+  // Bug 9: No stop condition — robot never stops
+  // Bug 10: No delay — sensor readings too fast, unstable
+}
