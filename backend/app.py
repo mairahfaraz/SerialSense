@@ -13,8 +13,6 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from dotenv import load_dotenv
 load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
-if not os.getenv('GEMINI_API_KEY'):
-    os.environ['GEMINI_API_KEY'] = 'AQ.Ab8RN6J59oD83AYjqdaY8fqMqb5-q27Xr-5S87t1_mYmZaJ_mg'
 
 from google import genai
 from google.genai import types
@@ -150,7 +148,7 @@ Greet them, confirm you understand their project. Keep it friendly, specific, an
 @app.route('/chat', methods=['POST'])
 @jwt_required()
 def chat():
-    print("start_session called")
+    print("chat called")
     user = get_jwt_identity()
     if not check_and_increment_limit(int(user)):
         return jsonify({'error': 'DAILY_LIMIT_REACHED'}), 429
