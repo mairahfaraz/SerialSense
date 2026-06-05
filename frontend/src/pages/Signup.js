@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import API_BASE from '../config';
 
 function Signup() {
   const navigate = useNavigate();
@@ -11,11 +12,11 @@ function Signup() {
 
   const handleSubmit = async () => {
     try {
-      const res = await axios.post('http://127.0.0.1:5000/signup', form);
-    const loginRes = await axios.post('http://127.0.0.1:5000/login', { email: form.email, password: form.password });
-    localStorage.setItem('token', loginRes.data.token);
-    localStorage.setItem('username', loginRes.data.username);
-    navigate('/dashboard');
+      await axios.post(`${API_BASE}/signup`, form);
+      const loginRes = await axios.post(`${API_BASE}/login`, { email: form.email, password: form.password });
+      localStorage.setItem('token', loginRes.data.token);
+      localStorage.setItem('username', loginRes.data.username);
+      navigate('/dashboard');
     } catch (err) {
       setError(err.response?.data?.error || 'Signup failed');
     }

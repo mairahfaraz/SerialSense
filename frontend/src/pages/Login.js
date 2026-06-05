@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import API_BASE from '../config';
 
 function Login() {
   const navigate = useNavigate();
@@ -11,7 +12,7 @@ function Login() {
 
   const handleSubmit = async () => {
     try {
-      const res = await axios.post('http://127.0.0.1:5000/login', form);
+      const res = await axios.post(`${API_BASE}/login`, form);
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('username', res.data.username);
       navigate('/dashboard');
@@ -19,6 +20,7 @@ function Login() {
       setError(err.response?.data?.error || 'Login failed');
     }
   };
+  
 
   return (
     <div style={styles.container}>

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import ReactMarkdown from 'react-markdown';
+import API_BASE from '../config';
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -29,7 +30,7 @@ function Dashboard() {
   const startSession = async () => {
     setLoading('Starting session...');
     try {
-      const res = await axios.post('http://127.0.0.1:5000/start_session', {
+      const res = await axios.post(`${API_BASE}/start_session`, {
         robot_type: robotType,
         arduino_type: arduinoType,
         motor_driver: motorDriver,
@@ -53,7 +54,7 @@ function Dashboard() {
     setUserInput('');
     setLoading('Thinking...');
     try {
-      const res = await axios.post('http://127.0.0.1:5000/chat', { message: userInput }, { headers });
+      const res = await axios.post(`${API_BASE}/chat`, { message: userInput }, { headers });
       setMessages([...newMessages, { role: 'assistant', content: res.data.reply }]);
     } catch (err) {
       if (err.response?.status === 429) {
@@ -71,7 +72,7 @@ function Dashboard() {
     const formData = new FormData();
     formData.append('file', inoFile);
     try {
-      const res = await axios.post('http://127.0.0.1:5000/analyze_code', formData, { headers });
+      const res = await axios.post(`${API_BASE}/analyze_code`, formData, { headers });
       setMessages(prev => [...prev, { role: 'assistant', content: res.data.analysis }]);
     } catch (err) {
       if (err.response?.status === 429) {
@@ -89,7 +90,7 @@ function Dashboard() {
     const formData = new FormData();
     formData.append('video', videoFile);
     try {
-      const res = await axios.post('http://127.0.0.1:5000/analyze_video', formData, { headers });
+      const res = await axios.post(`${API_BASE}/analyze_video`, formData, { headers });
       setMessages(prev => [...prev, { role: 'assistant', content: res.data.diagnosis }]);
     } catch (err) {
       if (err.response?.status === 429) {

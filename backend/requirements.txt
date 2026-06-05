@@ -1,0 +1,12 @@
+flask
+flask-cors
+flask-jwt-extended
+flask-sqlalchemy
+bcrypt
+python-dotenv
+google-genai
+opencv-python-headless
+torch
+torchvision
+watchdog
+gunicorn
