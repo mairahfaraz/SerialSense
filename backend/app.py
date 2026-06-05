@@ -148,22 +148,26 @@ Greet them, confirm you understand their project. Keep it friendly, specific, an
 @app.route('/chat', methods=['POST'])
 @jwt_required()
 def chat():
-    print("chat called")
     user = get_jwt_identity()
     if not check_and_increment_limit(int(user)):
         return jsonify({'error': 'DAILY_LIMIT_REACHED'}), 429
 
     data = request.get_json()
     user_message = data.get('message')
-    session = session_store.get(user, {'context': '', 'history': []})
+    session = session_store.get(user, {'context': '', 'history': [], 'current_code': ''})
 
     history_text = ""
     for msg in session['history']:
         role = "User" if msg['role'] == 'user' else "Assistant"
         history_text += f"{role}: {msg['content']}\n"
 
+    code_context = ""
+    if session.get('current_code'):
+        code_context = f"\nThe user's current Arduino code:\n{session['current_code']}\n"
+
     prompt = f"""You are SerialSense, an AI assistant helping a student build an Arduino based robot.
 Project context: {session['context']}
+{code_context}
 Conversation so far:
 {history_text}
 User: {user_message}"""
@@ -191,6 +195,10 @@ def analyze_code():
 
     file = request.files['file']
     code = file.read().decode('utf-8')
+
+    # Save code to session so chat can access it
+    session['current_code'] = code
+    session_store[user] = session
 
     prompt = f"""You are SerialSense analyzing Arduino code.
 Project context: {session['context']}
