@@ -2,3 +2,7 @@
 venv/
 __pycache__/
 *.pyc
+robot_classifier.pth
+dataset/
+*.env
+backend/serialsense.db
