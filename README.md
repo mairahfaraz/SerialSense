@@ -21,7 +21,7 @@ Built by Syeda Maira Faraz — Mechatronics Engineering, NUST.
 
 **Backend:** Python, Flask, Flask-JWT-Extended, Flask-SQLAlchemy, bcrypt
 
-**AI:** Google Gemini API (gemini-2.5-flash)
+**AI:** Google Gemini API (gemini-2.0-flash)
 
 **Machine Learning:** PyTorch, MobileNetV2 (fine-tuned on custom robot movement dataset)
 

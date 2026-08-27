@@ -1,8 +1,11 @@
-.env
+﻿.env
 venv/
 __pycache__/
 *.pyc
 robot_classifier.pth
 dataset/
 *.env
-backend/serialsense.db
+backend/instance/serialsense.db
+backend/instance/*.db
+node_modules/
+frontend/node_modules/

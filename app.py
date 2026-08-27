@@ -29,7 +29,7 @@ class ArduinoFileHandler(FileSystemEventHandler):
 Give short specific feedback about bugs, improvements, upload readiness.
 Under 100 words. Code: {code}"""
             response = client.models.generate_content(
-                model="gemini-2.5-flash", contents=prompt)
+                model="gemini-2.0-flash", contents=prompt)
             latest_analysis = response.text
 
 def start_watching(file):
@@ -63,7 +63,7 @@ Here is what they told you about their project:
 Greet them, confirm you understand their project.
 Keep it friendly, specific, and under 100 words."""
     response = client.models.generate_content(
-        model="gemini-2.5-flash", contents=prompt)
+        model="gemini-2.0-flash", contents=prompt)
     greeting = response.text
     return [{"role": "assistant", "content": greeting}]
 
@@ -80,7 +80,7 @@ Conversation so far:
 {messages}
 User: {user_message}"""
     response = client.models.generate_content(
-        model="gemini-2.5-flash", contents=prompt)
+        model="gemini-2.0-flash", contents=prompt)
     reply = response.text
     history.append({"role": "user", "content": user_message})
     history.append({"role": "assistant", "content": reply})
@@ -98,7 +98,7 @@ Give specific feedback relevant to their exact robot type and goal.
 Point out bugs, improvements, and upload readiness. But if the code is workable, encourage them to upload and test it on their robot to get real-world feedback.
 Under 150 words. Code: {code}"""
     response = client.models.generate_content(
-        model="gemini-2.5-flash", contents=prompt)
+        model="gemini-2.0-flash", contents=prompt)
     history.append({"role": "assistant", "content": response.text})
     return history
 
@@ -113,7 +113,7 @@ def start_analysis(duration, history):
         _, buffer = cv2.imencode('.jpg', snapshot)
         image_bytes = buffer.tobytes()
         response = client.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemini-2.0-flash",
             contents=[
                 types.Part.from_bytes(data=image_bytes, mime_type="image/jpeg"),
                 f"""You are SerialSense analyzing a robot's physical behavior.
@@ -126,7 +126,7 @@ Give specific diagnosis and fixes. Under 150 words."""
         )
     else:
         response = client.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemini-2.0-flash",
             contents=f"Motion summary: {summary}\nContext: {session_context}"
         )
     
@@ -163,7 +163,7 @@ def analyze_video_chat(video_input, history):
         _, buffer = cv2.imencode('.jpg', snapshot)
         image_bytes = buffer.tobytes()
         response = client.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemini-2.0-flash",
             contents=[
                 types.Part.from_bytes(data=image_bytes, mime_type="image/jpeg"),
                 f"""You are SerialSense analyzing a robot's physical behavior through a video file.
@@ -188,7 +188,7 @@ Give a specific diagnosis and actionable fixes based on the classification data.
         )
     else:
         response = client.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemini.5-flash",
             contents=f"Motion summary: {summary}\nContext: {session_context}"
         )
     

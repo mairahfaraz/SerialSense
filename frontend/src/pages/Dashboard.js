@@ -41,7 +41,7 @@ function Dashboard() {
       if (err.response?.status === 429) {
         setMessages([{ role: 'assistant', content: "You've reached today's free message limit. Please try again tomorrow!" }]);
       } else {
-        alert('Failed to start session');
+        setMessages([{ role: 'assistant', content: "SerialSense is having trouble connecting right now. Please try again in a moment!" }]);
       }
     }
     setLoading('');
@@ -173,7 +173,9 @@ function Dashboard() {
             {messages.map((msg, i) => (
               <div key={i} style={msg.role === 'user' ? styles.userMsg : styles.assistantMsg}>
                 <strong style={styles.msgLabel}>{msg.role === 'user' ? 'YOU' : 'SERIALSENSE'}:</strong>
-                <ReactMarkdown style={{ margin: '6px 0 0', lineHeight: '1.7', fontSize: '13px' }}>{msg.content}</ReactMarkdown>
+                <div className="assistant-content">
+                  <ReactMarkdown>{msg.content}</ReactMarkdown>
+              </div>
               </div>
             ))}
             {loading && <p style={styles.loading}>{loading}</p>}
@@ -371,7 +373,8 @@ const styles = {
     borderRadius: '10px',
     padding: '12px 16px',
     maxWidth: '85%',
-  },
+    wordBreak: 'break-word',
+    },
   msgLabel: {
     color: '#00d4aa',
     fontSize: '10px',
